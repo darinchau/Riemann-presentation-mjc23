@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
 
+pi = np.pi
+
 def is_callable(f):
     return "__call__" in f.__dir__()
 
@@ -48,8 +50,8 @@ class ComplexFunction:
     # Function calling. This is purely to overload the function signature
     def __call__(self, t: complex | Iterable[complex] | NDArray[np.complexfloating] | Expression | Callable[[complex], complex]):
         # Overload this thing if it is an expression
-        if is_callable(t):
-            return Expression(lambda x: t(x), "t") #type:ignore
+        if isinstance(t, Expression):
+            return Expression(lambda x: self(t(x)), t._name)
 
         if hasattr(self, "_f"):
             fnobj = self._f #type:ignore
@@ -118,10 +120,34 @@ class ComplexFunction:
         plt.imshow(image, extent=(x_min, x_max, y_min, y_max))
         plt.show()
 
+def frange(start, stop, step):
+    while start < stop:
+        yield complex(start)
+        start += step
+
 # Overload the plot to make a line only
 class RealToComplexFunction(ComplexFunction):
-    def plot(self, plot_range: tuple = (-1, 1), dpi = 300):
-        pass
+    def plot(self, plot_domain: tuple = (0, 10), plot_range: tuple = (-5, 5), dpi = 20):
+        divs = dpi * (plot_domain[1] - plot_domain[0])
+        result = self(np.linspace(plot_domain[0], plot_domain[1], divs, endpoint=True, dtype = np.complex128))
+
+        # Create figure and axis objects
+        fig, ax = plt.subplots()
+
+        # Set the x and y limits
+        ax.set_xlim(plot_range[0], plot_range[1])
+        ax.set_ylim(plot_range[0], plot_range[1])
+
+        # Set the origin at the center of the graph
+        ax.spines['left'].set_position('zero')
+        ax.spines['bottom'].set_position('zero')
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+
+        ax.plot(result.real, result.imag)
+
+        # Show the plot
+        plt.show()
 
 class Expression:
     def __init__(self, f, name: str):
@@ -191,6 +217,30 @@ def Function(expr: Expression):
 z = Expression(lambda x: x, "z")
 t = Expression(lambda x: x, "t")
 
+# Other functions for fun
+def expr(f):
+    def hiya(z):
+        if isinstance(z, Expression):
+            return Expression(lambda x: f(z(x)), z._name)
+        return f(z)
+    return hiya
+
+@expr
+def sin(z):
+    return np.sin(z)
+
+@expr
+def cos(z):
+    return np.cos(z)
+
+@expr
+def tan(z):
+    return np.cos(z)
+
+@expr
+def exp(z):
+    return np.exp(z)
+
 ## Tests
 class Add1(ComplexFunction):
     def call(self, z: complex):
@@ -219,9 +269,12 @@ def test3():
     print(f(1))
 
 if __name__ == "__main__":
-    f = Function(z)
-    f.plot() #type:ignore
+    # f = Function(z)
+    # f.plot() #type:ignore
 
-    g = Function(1/(z*z+1))
-    print(g(np.arange(10)))
-    g.plot((-2, 2, -2, 2))
+    # g = Function(1/(z*z+1))
+    # print(g(np.arange(10)))
+    # g.plot((-2, 2, -2, 2))
+    j = 1j
+    f = Function(exp(j * t))
+    print(f(2 * pi))
