@@ -52,7 +52,6 @@ class ComplexFunction:
             return Expression(lambda x: t(x), "t") #type:ignore
 
         if hasattr(self, "_f"):
-            print("Self function is set")
             fnobj = self._f #type:ignore
         else:
             fnobj = self.call
