@@ -157,3 +157,5 @@ activate_venv.bat
 
 # vs code
 .vscode
+
+*.h5

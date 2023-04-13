@@ -77,9 +77,12 @@ class ComplexFunction:
     # Plots the function
     # Sat cut: These two numbers define the range of the magnitude of z that takes full satuarion
     # Too large and then it will start to turn white, too small it will become black
-    def plot(self, plot_range: tuple = (-1, 1, -1, 1), dpi = 300):
+    def plot(self, plot_range: tuple = (-1, 1, -1, 1), dpi = None):
         # Readability
         x_min, x_max, y_min, y_max = plot_range
+
+        if dpi is None:
+            dpi = round(360/(x_max - x_min))
 
         # Calculate resolution
         resolution = (x_max - x_min) * dpi, (y_max - y_min) * dpi
